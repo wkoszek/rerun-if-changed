@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Copyright (c) 2018 Wojciech Adam Koszek <wojciech@koszek.com>
+# BSD licence
 
 # Wojciech Adam Koszek super duper process restarter.
 # Just a pile of ugly shell commands. No dependencies.
