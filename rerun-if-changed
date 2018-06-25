@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# Wojciech Adam Koszek super duper process restarter.
+# Just a pile of ugly shell commands. No dependencies.
+# Ultra practical. Runs on Linux, FreeBSD and macOS.
+
+CMD_TO_RUN=$1
+shift
+FIND_ARGS="$*"
+
+LS_OPTS=-laT
+if [ `uname -s` = "Darwin" ]; then
+	LS_OPTS=${LS_OPTS}@
+fi
+
+echo "--- rerun-if-changed got:"
+echo "Command to run  : $CMD_TO_RUN"
+echo "Files to monitor: $FIND_ARGS"
+echo "---"
+
+function main() {
+	CNT=0
+	CHILD_PID="x"
+	FIND_OUTPUT_PREV=""
+	while [ 1 ]; do
+		FIND_OUTPUT_CUR=$(ls ${LS_OPTS} ${FIND_ARGS})
+
+		#echo "CUR: $FIND_OUTPUT_CUR"
+		#echo "PRV: $FIND_OUTPUT_PREV"
+		if [ "$FIND_OUTPUT_CUR" != "$FIND_OUTPUT_PREV" ]; then
+			echo "would run $CMD_TO_RUN"
+
+			if [ "$CHILD_PID" != "x" ]; then
+				kill_for_sure $CHILD_PID
+			fi
+
+			$CMD_TO_RUN &
+			CHILD_PID=$!
+			disown
+			echo "forked $CHILD_PID"
+		else
+			echo "# keep-alive $CNT"
+		fi
+		FIND_OUTPUT_PREV="$FIND_OUTPUT_CUR"
+		sleep 1
+		CNT=`expr $CNT + 1`
+	done
+}
+
+function kill_for_sure() {
+	echo "`date` about to kill $1"
+	for sig in TERM TERM HUP HUP KILL KILL; do
+		ps -p $1 2>/dev/null >/dev/null
+		if [ "$?" = "1" ]; then
+			return
+		fi
+		echo "`date` killling $1 with $sig"
+		kill -$sig $1 2>/dev/null >/dev/null
+		ps -p $1 2>/dev/null >/dev/null
+		if [ "$?" = "1" ]; then
+			return
+		fi
+		sleep 3
+	done
+	echo "finishing up"
+}
+
+main
