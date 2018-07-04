@@ -1,8 +1,8 @@
 # Rerun if changed
 
-#### Wojciech Adam Koszek super duper process restarter.
+*Wojciech Adam Koszek super duper process restarter*
 
-This script starts the application and moniors the source code files in
+`rerun-if-changed` starts the application and moniors the source code files in
 parallel.
 It uses a standard shell commands, requires no extensions or complex
 dependencies.
